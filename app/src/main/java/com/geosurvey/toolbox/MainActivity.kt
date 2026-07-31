@@ -29,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -76,7 +75,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = androidx.compose.ui.Modifier.Modifier.fillMaxSize(),
                     color = Color.Transparent
                 ) {
                     GnssScreen(viewModel)
@@ -93,7 +92,7 @@ fun GnssScreen(viewModel: GnssViewModel) {
     val permissionGranted by viewModel.permissionGranted.collectAsState()
 
     Box(
-        modifier = Modifier
+        modifier = androidx.compose.ui.Modifier.Modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
@@ -106,7 +105,7 @@ fun GnssScreen(viewModel: GnssViewModel) {
             )
     ) {
         Column(
-            modifier = Modifier
+            modifier = androidx.compose.ui.Modifier.Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
@@ -125,7 +124,7 @@ fun GnssScreen(viewModel: GnssViewModel) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = androidx.compose.ui.Modifier.Modifier.height(12.dp))
 
             if (!permissionGranted) {
                 GlassCard {
@@ -139,7 +138,7 @@ fun GnssScreen(viewModel: GnssViewModel) {
             } else {
                 QualityCard(fix!!.quality, isStationary)
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = androidx.compose.ui.Modifier.Modifier.height(10.dp))
 
                 GlassCard {
                     DataRow("纬度", String.format("%.8f°", fix!!.latitude))
@@ -148,7 +147,7 @@ fun GnssScreen(viewModel: GnssViewModel) {
                     DataRow("UTC时间", formatUtc(fix!!.utcTimeMillis))
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = androidx.compose.ui.Modifier.Modifier.height(10.dp))
 
                 GlassCard {
                     DataRow("水平精度", String.format("%.1f m", fix!!.accuracyHorizontal))
@@ -158,7 +157,7 @@ fun GnssScreen(viewModel: GnssViewModel) {
                     DataRow("PDOP", String.format("%.2f", fix!!.pdop))
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = androidx.compose.ui.Modifier.Modifier.height(10.dp))
 
                 GlassCard {
                     DataRow(
@@ -172,7 +171,7 @@ fun GnssScreen(viewModel: GnssViewModel) {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = androidx.compose.ui.Modifier.Modifier.height(10.dp))
 
                 GlassCard {
                     Text(
@@ -180,16 +179,14 @@ fun GnssScreen(viewModel: GnssViewModel) {
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF00695C)
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = androidx.compose.ui.Modifier.Modifier.height(6.dp))
                     fix!!.satellites
                         .sortedByDescending { it.cn0DbHz }
                         .take(12)
                         .forEach { sat ->
                             val mark = if (sat.usedInFix) " ✓" else ""
                             Text(
-                                text = "\( {sat.constellationName} # \){sat.svid}  CN0=${
-                                    String.format("%.1f", sat.cn0DbHz)
-                                }  El=${String.format("%.0f", sat.elevationDegrees)}°$mark",
+                                text = "\( {sat.constellationName} # \){sat.svid}  CN0=\( {String.format("%.1f", sat.cn0DbHz)}  El= \){String.format("%.0f", sat.elevationDegrees)}°$mark",
                                 fontSize = 12.sp,
                                 fontFamily = FontFamily.Monospace,
                                 color = if (sat.usedInFix) Color(0xFF00695C) else Color.Gray
@@ -205,7 +202,7 @@ fun GnssScreen(viewModel: GnssViewModel) {
 fun QualityCard(quality: LocationQuality, isStationary: Boolean) {
     val bg = Color(quality.colorHex).copy(alpha = 0.25f)
     Box(
-        modifier = Modifier
+        modifier = androidx.compose.ui.Modifier.Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(bg)
@@ -231,7 +228,7 @@ fun QualityCard(quality: LocationQuality, isStationary: Boolean) {
 @Composable
 fun GlassCard(content: @Composable ColumnScope.() -> Unit) {
     Box(
-        modifier = Modifier
+        modifier = androidx.compose.ui.Modifier.Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(Color.White.copy(alpha = 0.38f))
@@ -245,7 +242,7 @@ fun GlassCard(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 fun DataRow(label: String, value: String) {
     Row(
-        modifier = Modifier
+        modifier = androidx.compose.ui.Modifier.Modifier
             .fillMaxWidth()
             .padding(vertical = 3.dp),
         horizontalArrangement = Arrangement.SpaceBetween
