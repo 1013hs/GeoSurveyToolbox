@@ -10,13 +10,25 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -26,11 +38,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.geosurvey.toolbox.gnss.model.GnssFix
 import com.geosurvey.toolbox.gnss.model.LocationQuality
 import com.geosurvey.toolbox.ui.GnssViewModel
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class MainActivity : ComponentActivity() {
 
@@ -62,7 +75,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color.Transparent
+                ) {
                     GnssScreen(viewModel)
                 }
             }
@@ -126,44 +142,54 @@ fun GnssScreen(viewModel: GnssViewModel) {
                 Spacer(modifier = Modifier.height(10.dp))
 
                 GlassCard {
-                    DataRow("纬度", "%.8f°".format(fix!!.latitude))
-                    DataRow("经度", "%.8f°".format(fix!!.longitude))
-                    DataRow("椭球高", "%.2f m".format(fix!!.altitudeEllipsoid))
+                    DataRow("纬度", String.format("%.8f°", fix!!.latitude))
+                    DataRow("经度", String.format("%.8f°", fix!!.longitude))
+                    DataRow("椭球高", String.format("%.2f m", fix!!.altitudeEllipsoid))
                     DataRow("UTC时间", formatUtc(fix!!.utcTimeMillis))
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 GlassCard {
-                    DataRow("水平精度", "%.1f m".format(fix!!.accuracyHorizontal))
-                    DataRow("垂直精度", "%.1f m".format(fix!!.accuracyVertical))
-                    DataRow("HDOP", "%.2f".format(fix!!.hdop))
-                    DataRow("VDOP", "%.2f".format(fix!!.vdop))
-                    DataRow("PDOP", "%.2f".format(fix!!.pdop))
+                    DataRow("水平精度", String.format("%.1f m", fix!!.accuracyHorizontal))
+                    DataRow("垂直精度", String.format("%.1f m", fix!!.accuracyVertical))
+                    DataRow("HDOP", String.format("%.2f", fix!!.hdop))
+                    DataRow("VDOP", String.format("%.2f", fix!!.vdop))
+                    DataRow("PDOP", String.format("%.2f", fix!!.pdop))
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 GlassCard {
-                    DataRow("速度", "%.2f m/s  (%.1f km/h)".format(fix!!.speed, fix!!.speed * 3.6f))
-                    DataRow("行进方向", "%.1f°".format(fix!!.bearing))
-                    DataRow("使用卫星", "${fix!!.usedSatelliteCount} / ${fix!!.satelliteCount}")
+                    DataRow(
+                        "速度",
+                        String.format("%.2f m/s (%.1f km/h)", fix!!.speed, fix!!.speed * 3.6f)
+                    )
+                    DataRow("行进方向", String.format("%.1f°", fix!!.bearing))
+                    DataRow(
+                        "使用卫星",
+                        "${fix!!.usedSatelliteCount} / ${fix!!.satelliteCount}"
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 GlassCard {
-                    Text("卫星详情 (CN0)", fontWeight = FontWeight.Bold, color = Color(0xFF00695C))
+                    Text(
+                        "卫星详情 (CN0)",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF00695C)
+                    )
                     Spacer(modifier = Modifier.height(6.dp))
                     fix!!.satellites
                         .sortedByDescending { it.cn0DbHz }
                         .take(12)
                         .forEach { sat ->
+                            val mark = if (sat.usedInFix) " ✓" else ""
                             Text(
-                                text = "\( {sat.constellationName} # \){sat.svid}  " +
-                                        "CN0=${"%.1f".format(sat.cn0DbHz)} dB-Hz  " +
-                                        "El=${"%.0f".format(sat.elevationDegrees)}°  " +
-                                        if (sat.usedInFix) "✓" else "",
+                                text = "\( {sat.constellationName} # \){sat.svid}  CN0=${
+                                    String.format("%.1f", sat.cn0DbHz)
+                                }  El=${String.format("%.0f", sat.elevationDegrees)}°$mark",
                                 fontSize = 12.sp,
                                 fontFamily = FontFamily.Monospace,
                                 color = if (sat.usedInFix) Color(0xFF00695C) else Color.Gray
