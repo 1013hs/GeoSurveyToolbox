@@ -48,7 +48,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 请求权限
         val fine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
         if (fine == PackageManager.PERMISSION_GRANTED) {
             viewModel.onPermissionGranted()
@@ -96,7 +95,6 @@ fun GnssScreen(viewModel: GnssViewModel) {
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            // 标题
             GlassCard {
                 Text(
                     text = "GeoSurvey Toolbox",
@@ -111,7 +109,7 @@ fun GnssScreen(viewModel: GnssViewModel) {
                 )
             }
 
-            Spacer(Modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             if (!permissionGranted) {
                 GlassCard {
@@ -123,12 +121,10 @@ fun GnssScreen(viewModel: GnssViewModel) {
                     Text("请到空旷处等待首次定位", fontSize = 13.sp)
                 }
             } else {
-                // 质量指示
                 QualityCard(fix!!.quality, isStationary)
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 坐标与时间
                 GlassCard {
                     DataRow("纬度", "%.8f°".format(fix!!.latitude))
                     DataRow("经度", "%.8f°".format(fix!!.longitude))
@@ -138,7 +134,6 @@ fun GnssScreen(viewModel: GnssViewModel) {
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 精度与DOP
                 GlassCard {
                     DataRow("水平精度", "%.1f m".format(fix!!.accuracyHorizontal))
                     DataRow("垂直精度", "%.1f m".format(fix!!.accuracyVertical))
@@ -149,7 +144,6 @@ fun GnssScreen(viewModel: GnssViewModel) {
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 运动信息
                 GlassCard {
                     DataRow("速度", "%.2f m/s  (%.1f km/h)".format(fix!!.speed, fix!!.speed * 3.6f))
                     DataRow("行进方向", "%.1f°".format(fix!!.bearing))
@@ -158,7 +152,6 @@ fun GnssScreen(viewModel: GnssViewModel) {
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 卫星列表（前12颗）
                 GlassCard {
                     Text("卫星详情 (CN0)", fontWeight = FontWeight.Bold, color = Color(0xFF00695C))
                     Spacer(modifier = Modifier.height(6.dp))
