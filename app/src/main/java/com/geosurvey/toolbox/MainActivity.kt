@@ -3,30 +3,21 @@ package com.geosurvey.toolbox
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier.modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.geosurvey.toolbox.ui.GnssViewModel
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
     private val viewModel: GnssViewModel by viewModels()
+    private lateinit var statusText: TextView
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -38,7 +29,19 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        val scroll = ScrollView(this)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(40, 80, 40, 40)
+        }
+        statusText = TextView(this).apply {
+            textSize = 16f
+            setTextColor(0xFF00695C.toInt())
+        }
+        layout.addView(statusText)
+        scroll.addView(layout)
+        setContentView(scroll)
 
         val fine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
         if (fine == PackageManager.PERMISSION_GRANTED) {
@@ -52,34 +55,35 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        setContent {
-            MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    SimpleGnssScreen(viewModel)
+        lifecycleScope.launch {
+            viewModel.fix.collect { fix ->
+                if (fix == null) {
+                    statusText.text = "正在搜索卫星...\n请到空旷处等待首次定位"
+                } else {
+                    statusText.text = """
+                        GeoSurvey Toolbox - 阶段2
+                        高精度GNSS定位核心
+                        
+                        纬度: ${"%.8f".format(fix.latitude)}
+                        经度: ${"%.8f".format(fix.longitude)}
+                        椭球高: ${"%.2f".format(fix.altitudeEllipsoid)} m
+                        
+                        水平精度: ${"%.1f".format(fix.accuracyHorizontal)} m
+                        垂直精度: ${"%.1f".format(fix.accuracyVertical)} m
+                        HDOP: ${"%.2f".format(fix.hdop)}
+                        VDOP: ${"%.2f".format(fix.vdop)}
+                        PDOP: ${"%.2f".format(fix.pdop)}
+                        
+                        速度: ${"%.2f".format(fix.speed)} m/s
+                        方向: ${"%.1f".format(fix.bearing)}°
+                        
+                        使用卫星: ${fix.usedSatelliteCount} / ${fix.satelliteCount}
+                        质量: ${fix.quality.label}
+                        
+                        (UI 将在后续阶段恢复为 Glassmorphism Compose)
+                    """.trimIndent()
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun SimpleGnssScreen(viewModel: GnssViewModel) {
-    val fix by viewModel.fix.collectAsState()
-    val permissionGranted by viewModel.permissionGranted.collectAsState()
-
-    Box(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        if (!permissionGranted) {
-            Text("请授予定位权限", fontSize = 18.sp)
-        } else if (fix == null) {
-            Text("正在搜索卫星，请到空旷处...", fontSize = 18.sp)
-        } else {
-            Text(
-                text = "纬度: ${fix!!.latitude}\n经度: ${fix!!.longitude}\n质量: ${fix!!.quality.label}\n卫星: ${fix!!.usedSatelliteCount}",
-                fontSize = 16.sp
-            )
         }
     }
 }
