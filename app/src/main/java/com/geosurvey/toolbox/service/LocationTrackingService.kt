@@ -11,7 +11,6 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.geosurvey.toolbox.MainActivity
-import com.geosurvey.toolbox.R
 import com.geosurvey.toolbox.data.track.TrackPointEntity
 import com.geosurvey.toolbox.data.track.TrackRepository
 import com.geosurvey.toolbox.gnss.GnssManager
@@ -85,8 +84,8 @@ class LocationTrackingService : Service() {
     }
 
     private suspend fun savePoint(fix: GnssFix) {
-        // 低质量点过滤（质量评价已在 GnssManager 完成）
-        if (fix.quality.ordinal >= 3) return   // BAD 及以下不记录（可调整）
+        // 质量过低的点不记录（可后续调整阈值）
+        if (fix.quality.ordinal >= 3) return
 
         val entity = TrackPointEntity(
             trackId = currentTrackId,
@@ -106,7 +105,8 @@ class LocationTrackingService : Service() {
     }
 
     private fun updateNotification(fix: GnssFix) {
-        val text = "卫星:\( {fix.usedSatelliteCount}  精度: \){"%.1f".format(fix.accuracyHorizontal)}m  质量:${fix.quality.label}"
+        val acc = String.format("%.1f", fix.accuracyHorizontal)
+        val text = "卫星:" + fix.usedSatelliteCount + "  精度:" + acc + "m  质量:" + fix.quality.label
         val notification = buildNotification(text)
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         nm.notify(NOTIFICATION_ID, notification)
@@ -135,9 +135,8 @@ class LocationTrackingService : Service() {
                 CHANNEL_ID,
                 "轨迹记录服务",
                 NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "后台持续记录GNSS轨迹"
-            }
+            )
+            channel.description = "后台持续记录GNSS轨迹"
             val nm = getSystemService(NotificationManager::class.java)
             nm.createNotificationChannel(channel)
         }
