@@ -17,7 +17,7 @@ interface TrackDao {
     @Query("SELECT * FROM track_points WHERE trackId = :trackId ORDER BY timestamp ASC")
     fun getPointsByTrackId(trackId: String): Flow<List<TrackPointEntity>>
 
-    @Query("SELECT DISTINCT trackId FROM track_points ORDER BY MAX(timestamp) DESC")
+    @Query("SELECT trackId FROM track_points GROUP BY trackId ORDER BY MAX(timestamp) DESC")
     fun getAllTrackIds(): Flow<List<String>>
 
     @Query("SELECT * FROM track_points ORDER BY timestamp DESC LIMIT 1")
