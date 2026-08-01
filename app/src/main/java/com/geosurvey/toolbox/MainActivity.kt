@@ -101,21 +101,30 @@ class MainActivity : ComponentActivity() {
             viewModel.fix.collect { fix ->
                 val trackStatus = if (isTracking) "【正在记录】" else "【未记录】"
                 if (fix == null) {
-                    statusText.text = "$trackStatus\n正在搜索卫星…\n请到空旷处"
+                    statusText.text = trackStatus + "\n正在搜索卫星…\n请到空旷处"
                 } else {
-                    statusText.text = """
-                        $trackStatus
-                        阶段3 · 后台轨迹 + 历史管理
-                        
-                        纬度: ${"%.8f".format(fix.latitude)}
-                        经度: ${"%.8f".format(fix.longitude)}
-                        海拔: ${"%.1f".format(fix.altitudeEllipsoid)} m
-                        精度: ${"%.1f".format(fix.accuracyHorizontal)} m
-                        HDOP: ${"%.2f".format(fix.hdop)}  PDOP: ${"%.2f".format(fix.pdop)}
-                        卫星: \( {fix.usedSatelliteCount}/ \){fix.satelliteCount}
-                        质量: ${fix.quality.label}
-                        速度: ${"%.2f".format(fix.speed)} m/s
-                    """.trimIndent()
+                    val lat = String.format("%.8f", fix.latitude)
+                    val lon = String.format("%.8f", fix.longitude)
+                    val alt = String.format("%.1f", fix.altitudeEllipsoid)
+                    val acc = String.format("%.1f", fix.accuracyHorizontal)
+                    val hdop = String.format("%.2f", fix.hdop)
+                    val pdop = String.format("%.2f", fix.pdop)
+                    val speed = String.format("%.2f", fix.speed)
+                    val used = fix.usedSatelliteCount
+                    val total = fix.satelliteCount
+                    val quality = fix.quality.label
+
+                    statusText.text =
+                        trackStatus + "\n" +
+                        "阶段3 · 后台轨迹 + 历史管理\n\n" +
+                        "纬度: " + lat + "\n" +
+                        "经度: " + lon + "\n" +
+                        "海拔: " + alt + " m\n" +
+                        "精度: " + acc + " m\n" +
+                        "HDOP: " + hdop + "  PDOP: " + pdop + "\n" +
+                        "卫星: " + used + "/" + total + "\n" +
+                        "质量: " + quality + "\n" +
+                        "速度: " + speed + " m/s"
                 }
             }
         }
@@ -134,17 +143,14 @@ class MainActivity : ComponentActivity() {
 
                 for (id in ids) {
                     val count = repository.getPointCount(id)
-                    val points = repository.getPoints(id)
-                    // 只取第一个点的时间作为开始时间（简化）
-                    var startTime = "-"
-                    // Flow 不能直接取，这里用最新点近似显示
                     val latest = repository.getLatestPoint()
+                    var timeStr = "-"
                     if (latest != null && latest.trackId == id) {
-                        startTime = sdf.format(Date(latest.timestamp))
+                        timeStr = sdf.format(Date(latest.timestamp))
                     }
-                    sb.append("\n轨迹ID: ${id.take(8)}...\n")
-                    sb.append("点数: $count\n")
-                    sb.append("最近时间: $startTime\n")
+                    sb.append("\n轨迹ID: ").append(id.take(8)).append("...\n")
+                    sb.append("点数: ").append(count).append("\n")
+                    sb.append("最近时间: ").append(timeStr).append("\n")
                     sb.append("------------------\n")
                 }
                 historyText.text = sb.toString()
